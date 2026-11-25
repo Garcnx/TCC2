@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Loja demonstrativa de eletrônicos CF.">
+  <title>CF Eletrônicos | Loja</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/store.js" defer></script>
+</head>
+<body>
+  <header class="store-header">
+    <a class="brand" href="/" aria-label="CF Eletrônicos, início">
+      <span class="logo">CF</span>
+      <span>
+        <strong id="storeBrandName">CF Eletrônicos</strong>
+        <small>Tecnologia para o seu dia</small>
+      </span>
+    </a>
+    <div class="store-header-actions">
+      <nav class="main-nav" aria-label="Navegação da loja">
+        <a class="header-link" href="#catalog">Produtos</a>
+        <a class="header-link" href="/login">Acesso administrativo</a>
+      </nav>
+      <button class="cart-toggle" id="openCartButton" type="button" aria-label="Abrir carrinho">
+        Carrinho <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="store-main">
+    <section class="store-hero">
+      <div class="hero-copy">
+        <span class="eyebrow">CATÁLOGO DE DEMONSTRAÇÃO</span>
+        <h1>Mais tecnologia.<br><span>Melhores escolhas.</span></h1>
+        <p>Explore eletrônicos, monte seu carrinho e acompanhe pedidos no painel da loja.</p>
+        <a class="primary-link" href="#catalog">Explorar produtos <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-art-orbit"></div>
+        <div class="hero-device device-phone">▯</div>
+        <div class="hero-device device-headphones">◖</div>
+        <div class="hero-device device-watch">◉</div>
+        <span class="hero-art-label">CF / TECH</span>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="catalog" aria-labelledby="catalogTitle">
+      <div class="catalog-heading">
+        <div>
+          <span class="eyebrow">CURADORIA CF</span>
+          <h2 id="catalogTitle">Encontre seu próximo eletrônico</h2>
+        </div>
+        <span class="demo-label">Produtos e preços de demonstração</span>
+      </div>
+
+      <div class="catalog-tools">
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <span class="visually-hidden">Buscar produtos</span>
+          <input id="productSearch" type="search" placeholder="Buscar por nome ou categoria">
+        </label>
+        <label class="select-control">
+          <span class="visually-hidden">Filtrar por categoria</span>
+          <select id="categoryFilter">
+            <option value="">Todas as categorias</option>
+          </select>
+        </label>
+        <label class="select-control">
+          <span class="visually-hidden">Ordenar produtos</span>
+          <select id="sortProducts">
+            <option value="featured">Em destaque</option>
+            <option value="price-asc">Menor preço</option>
+            <option value="price-desc">Maior preço</option>
+            <option value="name">Nome A–Z</option>
+          </select>
+        </label>
+      </div>
+
+      <p class="store-message" id="storeMessage" role="status" aria-live="polite"></p>
+      <div class="product-grid store-product-grid" id="productGrid"></div>
+      <p class="empty-state" id="emptyProducts" hidden>Nenhum produto encontrado com esses filtros.</p>
+    </section>
+  </main>
+
+  <footer class="store-footer">
+    <span id="storeFooterName">CF Eletrônicos</span>
+    <span>Preços ilustrativos, editáveis pelo painel da loja. Nenhuma cobrança real é realizada.</span>
+    <a href="/login">Acesso administrativo</a>
+  </footer>
+
+  <div class="cart-backdrop" id="cartBackdrop" hidden></div>
+  <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle" hidden>
+    <div class="cart-heading">
+      <div>
+        <span class="eyebrow">SUA SELEÇÃO</span>
+        <h2 id="cartTitle">Seu carrinho</h2>
+      </div>
+      <button class="icon-button" id="closeCartButton" type="button" aria-label="Fechar carrinho">×</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <span>Total do pedido</span>
+      <strong id="cartTotal">R$ 0,00</strong>
+    </div>
+    <form class="checkout-form" id="checkoutForm">
+      <label for="customerName">Seu nome</label>
+      <input id="customerName" type="text" minlength="2" maxlength="80" autocomplete="name" required>
+      <button class="primary-button full-width" id="checkoutButton" type="submit">Criar pedido de demonstração</button>
+    </form>
+    <p class="message" id="checkoutMessage" role="status" aria-live="polite"></p>
+    <p class="cart-note">Pedido demonstrativo: não há pagamento nem dados financeiros reais.</p>
+  </aside>
+</body>
+</html>

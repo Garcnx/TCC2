@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cadastre sua loja e crie seu painel financeiro CF.">
+  <title>Cadastrar loja | CF Eletrônicos</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/auth.js" defer></script>
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <a class="brand auth-brand" href="/" aria-label="CF Eletrônicos, loja">
+        <span class="logo">CF</span>
+        <span><strong id="authTitle">Cadastre sua loja</strong><small>Dashboard financeiro CF</small></span>
+      </a>
+      <p class="auth-intro">Crie uma conta para gerenciar vendas, custos, estoque e despesas da sua loja.</p>
+      <form class="auth-form" id="registerForm">
+        <label for="registerStoreName">Nome da loja</label>
+        <input id="registerStoreName" name="storeName" type="text" autocomplete="organization" minlength="2" maxlength="120" required>
+        <label for="registerName">Seu nome</label>
+        <input id="registerName" name="name" type="text" autocomplete="name" minlength="2" maxlength="80" required>
+        <label for="registerUsername">Nome de usuário</label>
+        <input id="registerUsername" name="username" type="text" autocomplete="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9._-]+" required>
+        <label for="registerEmail">E-mail</label>
+        <input id="registerEmail" name="email" type="email" autocomplete="email" maxlength="254" required>
+        <label for="registerPassword">Senha (mínimo de 8 caracteres)</label>
+        <input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+        <button class="primary-button" id="registerButton" type="submit">Criar conta da loja</button>
+      </form>
+      <p class="message" id="authMessage" role="status" aria-live="polite"></p>
+      <p class="auth-note">Cada cadastro cria um espaço independente para os dados financeiros e produtos da loja.</p>
+      <a class="back-link" href="/login">Já tem conta? → Entrar</a>
+    </section>
+  </main>
+</body>
+</html>

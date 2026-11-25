@@ -1,0 +1,12 @@
+{
+  "name": "cf-electronics-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CF: loja demonstrativa de eletrônicos com painel de gestão",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node server\\server.js"
+  }
+}

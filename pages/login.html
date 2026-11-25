@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar | CF Eletrônicos</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/auth.js" defer></script>
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <a class="brand auth-brand" href="/" aria-label="CF Eletrônicos, loja">
+        <span class="logo">CF</span>
+        <span><strong id="authTitle">CF Eletrônicos</strong><small>Painel administrativo</small></span>
+      </a>
+      <p class="auth-intro">Entre no painel financeiro para acompanhar vendas, custos, despesas e lucro da loja.</p>
+      <form class="auth-form" id="loginForm">
+        <label for="loginIdentifier">E-mail ou usuário</label>
+        <input id="loginIdentifier" name="identifier" type="text" autocomplete="username" maxlength="254" required>
+        <label for="loginPassword">Senha</label>
+        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+        <button class="primary-button" type="submit">Entrar no painel</button>
+      </form>
+      <p class="message" id="authMessage" role="status" aria-live="polite"></p>
+      <p class="auth-note">Conta para demonstração: <strong>pedro@gmail.com</strong> ou <strong>teste</strong> · senha <strong>12345678</strong>.<br>
+        Sua loja ainda não tem acesso? <a class="auth-link" href="/cadastro">Cadastre sua loja</a></p>
+      <a class="back-link" href="/">← Voltar à loja</a>
+    </section>
+  </main>
+</body>
+</html>
