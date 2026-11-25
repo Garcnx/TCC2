@@ -1065,6 +1065,14 @@ const server = http.createServer(async (request, response) => {
       response.end();
       return;
     }
+    if (url.pathname === '/' && !getCustomerSession(request)) {
+      response.writeHead(302, {
+        Location: `/cliente/cadastro${url.search}`,
+        'Cache-Control': 'no-store'
+      });
+      response.end();
+      return;
+    }
     serveStatic(response, url.pathname);
   } catch (error) {
     if (response.headersSent) {

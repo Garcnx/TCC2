@@ -29,7 +29,7 @@ O login aceita e-mail ou usuário. A aba **Conta** permite atualizar o nome, car
 
 ## Cadastro do cliente na simulação
 
-O cliente pode criar uma conta dedicada em `http://localhost:3001/cliente/cadastro` e entrar em `http://localhost:3001/cliente/login`.
+Ao acessar a vitrine sem uma sessão de cliente, o visitante é direcionado primeiro ao cadastro. Depois de criar a conta, ele segue para a loja simulada. Clientes existentes podem entrar em `http://localhost:3001/cliente/login`; o cadastro também está disponível em `http://localhost:3001/cliente/cadastro`.
 O cadastro utiliza nome, e-mail, telefone e senha, mantém uma sessão separada da conta administrativa e pode ser associado a uma loja específica.
 
 Antes de criar um pedido, o cliente informa nome, e-mail e telefone no carrinho. Esses dados são salvos no pedido e preenchidos automaticamente quando o cliente está conectado. O cadastro é demonstrativo e não coleta dados reais de pagamento.
