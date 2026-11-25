@@ -29,6 +29,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_username
 CREATE INDEX IF NOT EXISTS users_store
   ON users (store_id);
 
+CREATE TABLE IF NOT EXISTS customers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  store_id INTEGER NOT NULL REFERENCES stores(id),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  password_salt TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS customers_store_email
+  ON customers (store_id, email);
+
 CREATE TABLE IF NOT EXISTS products (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   store_id INTEGER NOT NULL REFERENCES stores(id),
@@ -52,6 +66,8 @@ CREATE TABLE IF NOT EXISTS orders (
   store_id INTEGER NOT NULL REFERENCES stores(id),
   order_number TEXT NOT NULL UNIQUE,
   customer_name TEXT NOT NULL,
+  customer_email TEXT,
+  customer_phone TEXT,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'paid', 'shipped', 'cancelled')),
   total_cents INTEGER NOT NULL CHECK (total_cents >= 0),

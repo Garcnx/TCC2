@@ -20,6 +20,7 @@
     <div class="store-header-actions">
       <nav class="main-nav" aria-label="Navegação da loja">
         <a class="header-link" href="#catalog">Produtos</a>
+        <a class="header-link" id="customerAccountLink" href="/cliente/cadastro">Criar conta do cliente</a>
         <a class="header-link" href="/login">Acesso administrativo</a>
       </nav>
       <button class="cart-toggle" id="openCartButton" type="button" aria-label="Abrir carrinho">
@@ -104,8 +105,15 @@
       <strong id="cartTotal">R$ 0,00</strong>
     </div>
     <form class="checkout-form" id="checkoutForm">
-      <label for="customerName">Seu nome</label>
-      <input id="customerName" type="text" minlength="2" maxlength="80" autocomplete="name" required>
+      <div class="checkout-registration">
+        <span class="checkout-registration-title">Cadastro do cliente</span>
+        <label for="customerName">Nome completo</label>
+        <input id="customerName" name="customerName" type="text" minlength="2" maxlength="80" autocomplete="name" required>
+        <label for="customerEmail">E-mail</label>
+        <input id="customerEmail" name="customerEmail" type="email" maxlength="254" autocomplete="email" required>
+        <label for="customerPhone">Telefone</label>
+        <input id="customerPhone" name="customerPhone" type="tel" minlength="10" maxlength="20" autocomplete="tel" placeholder="(11) 99999-9999" required>
+      </div>
       <button class="primary-button full-width" id="checkoutButton" type="submit">Criar pedido de demonstração</button>
     </form>
     <p class="message" id="checkoutMessage" role="status" aria-live="polite"></p>

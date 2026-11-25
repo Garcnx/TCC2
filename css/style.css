@@ -169,6 +169,15 @@ textarea:focus-visible {
   color: var(--green);
 }
 
+.table-secondary {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .empty-state {
   padding: 26px 16px;
   border: 1px dashed #405a4b;
@@ -806,6 +815,21 @@ textarea:focus-visible {
 .checkout-form {
   display: grid;
   gap: 8px;
+}
+
+.checkout-registration {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(16, 23, 19, .55);
+}
+
+.checkout-registration-title {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .cart-note {

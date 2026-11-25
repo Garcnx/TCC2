@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Entre na sua conta de cliente da loja.">
+  <title>Entrar | Loja</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/customer-auth.js" defer></script>
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <a class="brand auth-brand" href="/" aria-label="Voltar para a loja">
+        <span class="logo">CF</span>
+        <span><strong id="authTitle">Entrar como cliente</strong><small>Acesso à loja</small></span>
+      </a>
+      <p class="auth-intro">Entre com sua conta para continuar acessando a loja.</p>
+      <form class="auth-form" id="customerLoginForm">
+        <label for="customerLoginEmail">E-mail</label>
+        <input id="customerLoginEmail" name="email" type="email" autocomplete="email" maxlength="254" required>
+        <label for="customerLoginPassword">Senha</label>
+        <input id="customerLoginPassword" name="password" type="password" autocomplete="current-password" required>
+        <button class="primary-button" type="submit">Entrar na loja</button>
+      </form>
+      <p class="message" id="customerAuthMessage" role="status" aria-live="polite"></p>
+      <a class="back-link" href="/cliente/cadastro">Ainda não tem conta? → Cadastrar</a>
+      <a class="back-link" href="/">← Voltar à loja</a>
+    </section>
+  </main>
+</body>
+</html>

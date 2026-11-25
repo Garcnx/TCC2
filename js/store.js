@@ -10,6 +10,47 @@ const checkoutMessage = document.getElementById('checkoutMessage');
 const cart = new Map();
 const storeSlug = new URLSearchParams(window.location.search).get('loja') || 'loja-do-pedro';
 let products = [];
+const customerRegistrationKey = 'cf-store-customer-registration';
+
+function loadCustomerRegistration() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(customerRegistrationKey));
+    if (!saved) return;
+    document.getElementById('customerName').value = saved.name || '';
+    document.getElementById('customerEmail').value = saved.email || '';
+    document.getElementById('customerPhone').value = saved.phone || '';
+  } catch {
+    // Dados locais corrompidos ou armazenamento bloqueado nao impedem o checkout.
+  }
+}
+
+function saveCustomerRegistration() {
+  try {
+    localStorage.setItem(customerRegistrationKey, JSON.stringify({
+      name: document.getElementById('customerName').value.trim(),
+      email: document.getElementById('customerEmail').value.trim(),
+      phone: document.getElementById('customerPhone').value.trim()
+    }));
+  } catch {
+    // A navegacao pode continuar quando o navegador bloqueia o armazenamento local.
+  }
+
+  async function loadCustomerSession() {
+    try {
+      const response = await fetch('/api/customer/me', {credentials: 'same-origin'});
+      const payload = await response.json();
+      if (!payload.customer) return;
+      document.getElementById('customerName').value = payload.customer.name || '';
+      document.getElementById('customerEmail').value = payload.customer.email || '';
+      document.getElementById('customerPhone').value = payload.customer.phone || '';
+      const accountLink = document.getElementById('customerAccountLink');
+      accountLink.textContent = `Olá, ${payload.customer.name.split(' ')[0]}`;
+      accountLink.href = `/?loja=${encodeURIComponent(storeSlug)}#catalog`;
+    } catch {
+      // A loja continua acessivel mesmo sem verificar a sessao do cliente.
+    }
+  }
+}
 
 function makeElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -259,11 +300,14 @@ document.getElementById('checkoutForm').addEventListener('submit', async event =
       method: 'POST',
       body: JSON.stringify({
         customerName: document.getElementById('customerName').value.trim(),
+        customerEmail: document.getElementById('customerEmail').value.trim(),
+        customerPhone: document.getElementById('customerPhone').value.trim(),
         storeSlug,
         expectedTotalCents: lines.reduce((sum, line) => sum + Math.round(line.product.price * 100) * line.quantity, 0),
         items: lines.map(line => ({productId: line.product.id, quantity: line.quantity}))
       })
     });
+    saveCustomerRegistration();
     cart.clear();
     renderCart();
     await loadProducts(true);
@@ -278,6 +322,8 @@ document.getElementById('checkoutForm').addEventListener('submit', async event =
   }
 });
 
+loadCustomerRegistration();
+loadCustomerSession();
 renderCart();
 loadProducts();
 

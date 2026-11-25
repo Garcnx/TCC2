@@ -251,7 +251,13 @@ function renderOrders(orders) {
   for (const order of orders) {
     const row = document.createElement('tr');
     row.append(makeElement('td', 'table-order-number', order.number));
-    row.append(makeElement('td', '', order.customerName));
+    const customer = makeElement('td');
+    customer.append(makeElement('strong', '', order.customerName));
+    if (order.customerEmail || order.customerPhone) {
+      const contact = [order.customerEmail, order.customerPhone].filter(Boolean).join(' · ');
+      customer.append(makeElement('small', 'table-secondary', contact));
+    }
+    row.append(customer);
     row.append(makeElement('td', '', `${order.itemCount} un.`));
     row.append(makeElement('td', '', formatPrice(order.total)));
     row.append(makeElement('td', '', formatDate(order.createdAt)));

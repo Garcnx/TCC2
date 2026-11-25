@@ -73,6 +73,8 @@ function initializeDatabase() {
 
   if (tableExists('orders')) {
     ensureColumn('orders', 'store_id', 'INTEGER REFERENCES stores(id)');
+    ensureColumn('orders', 'customer_email', 'TEXT');
+    ensureColumn('orders', 'customer_phone', 'TEXT');
     database.exec('UPDATE orders SET store_id = 1 WHERE store_id IS NULL');
   }
 
@@ -199,7 +201,9 @@ initializeDatabase();
 seedDemoData();
 
 const sessions = new Map();
+const customerSessions = new Map();
 const cookieName = 'cf_admin_session';
+const customerCookieName = 'cf_customer_session';
 const sessionDurationMs = 12 * 60 * 60 * 1000;
 const bodyLimitBytes = 32 * 1024;
 const moneyFormatter = new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'});
@@ -290,6 +294,33 @@ function createSession(userId) {
   const token = randomBytes(32).toString('hex');
   sessions.set(token, {userId, expiresAt: Date.now() + sessionDurationMs});
   return `${cookieName}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${sessionDurationMs / 1000}`;
+}
+
+function getCustomerSession(request) {
+  const token = getCookie(request, customerCookieName);
+  const session = customerSessions.get(token);
+  if (!session) return null;
+  if (session.expiresAt <= Date.now()) {
+    customerSessions.delete(token);
+    return null;
+  }
+  return {...session, token};
+}
+
+function createCustomerSession(customerId) {
+  const token = randomBytes(32).toString('hex');
+  customerSessions.set(token, {customerId, expiresAt: Date.now() + sessionDurationMs});
+  return `${customerCookieName}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${sessionDurationMs / 1000}`;
+}
+
+function publicCustomer(customer) {
+  return {
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    storeId: customer.store_id
+  };
 }
 
 function publicUser(user) {
@@ -387,6 +418,8 @@ function orderResponse(row) {
     id: row.id,
     number: row.order_number,
     customerName: row.customer_name,
+    customerEmail: row.customer_email || '',
+    customerPhone: row.customer_phone || '',
     status: row.status,
     total: row.total_cents / 100,
     itemCount: row.item_count,
@@ -510,7 +543,8 @@ function calculateFinance(storeId, periodDays) {
 
 function listOrders(storeId) {
   return database.prepare(
-    `SELECT o.id, o.order_number, o.customer_name, o.status, o.total_cents, o.created_at,
+    `SELECT o.id, o.order_number, o.customer_name, o.customer_email, o.customer_phone,
+            o.status, o.total_cents, o.created_at,
             COALESCE(SUM(oi.quantity), 0) AS item_count
      FROM orders o
      LEFT JOIN order_items oi ON oi.order_id = o.id
@@ -523,11 +557,19 @@ function listOrders(storeId) {
 
 function validateCheckout(body) {
   const customerName = typeof body.customerName === 'string' ? body.customerName.trim() : '';
+  const customerEmail = typeof body.customerEmail === 'string' ? body.customerEmail.trim().toLowerCase() : '';
+  const customerPhone = typeof body.customerPhone === 'string' ? body.customerPhone.trim() : '';
   const storeSlug = typeof body.storeSlug === 'string' && body.storeSlug
     ? body.storeSlug.trim().toLowerCase()
     : 'loja-do-pedro';
   if (customerName.length < 2 || customerName.length > 80) {
     throw new HttpError(400, 'Informe seu nome com 2 a 80 caracteres.');
+  }
+  if (customerEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    throw new HttpError(400, 'Informe um endereço de e-mail válido.');
+  }
+  if (customerPhone.length < 10 || customerPhone.length > 20) {
+    throw new HttpError(400, 'Informe um telefone válido com 10 a 20 caracteres.');
   }
   if (!/^[a-z0-9-]{3,80}$/.test(storeSlug)) throw new HttpError(400, 'A loja informada não é válida.');
   if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 30) {
@@ -552,11 +594,11 @@ function validateCheckout(body) {
     if (combinedQuantity > 99) throw new HttpError(400, 'A quantidade máxima por produto é 99.');
     quantities.set(productId, combinedQuantity);
   }
-  return {customerName, quantities, expectedTotalCents, storeSlug};
+  return {customerName, customerEmail, customerPhone, quantities, expectedTotalCents, storeSlug};
 }
 
 function createOrder(body) {
-  const {customerName, quantities, expectedTotalCents, storeSlug} = validateCheckout(body);
+  const {customerName, customerEmail, customerPhone, quantities, expectedTotalCents, storeSlug} = validateCheckout(body);
   const store = database.prepare('SELECT id FROM stores WHERE slug = ?').get(storeSlug);
   if (!store) throw new HttpError(404, 'A loja não foi encontrada.');
   database.exec('BEGIN IMMEDIATE');
@@ -581,9 +623,10 @@ function createOrder(body) {
     const now = new Date().toISOString();
     const orderNumber = `CF-${Date.now().toString(36).toUpperCase()}-${randomBytes(2).toString('hex').toUpperCase()}`;
     const inserted = database.prepare(
-      `INSERT INTO orders (store_id, order_number, customer_name, status, total_cents, created_at, updated_at)
-       VALUES (?, ?, ?, 'pending', ?, ?, ?)`
-    ).run(store.id, orderNumber, customerName, totalCents, now, now);
+      `INSERT INTO orders
+         (store_id, order_number, customer_name, customer_email, customer_phone, status, total_cents, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)`
+    ).run(store.id, orderNumber, customerName, customerEmail, customerPhone, totalCents, now, now);
     const orderId = Number(inserted.lastInsertRowid);
     const insertLine = database.prepare(
       `INSERT INTO order_items
@@ -653,6 +696,88 @@ async function handleAPI(request, response, url) {
   const route = url.pathname;
   if (route === '/api/auth/setup' && request.method === 'GET') {
     sendJSON(response, 200, {available: true});
+    return;
+  }
+
+  if (route === '/api/customer/register' && request.method === 'POST') {
+    const body = await readJSON(request);
+    const name = typeof body.name === 'string' ? body.name.trim() : '';
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
+    const storeSlug = typeof body.storeSlug === 'string' && body.storeSlug
+      ? body.storeSlug.trim().toLowerCase()
+      : 'loja-do-pedro';
+    if (name.length < 2 || name.length > 80) throw new HttpError(400, 'Informe seu nome com 2 a 80 caracteres.');
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new HttpError(400, 'Informe um endereço de e-mail válido.');
+    }
+    if (phone.length < 10 || phone.length > 20) {
+      throw new HttpError(400, 'Informe um telefone válido com 10 a 20 caracteres.');
+    }
+    if (password.length < 8 || password.length > 128) {
+      throw new HttpError(400, 'A senha deve ter entre 8 e 128 caracteres.');
+    }
+    if (!/^[a-z0-9-]{3,80}$/.test(storeSlug)) throw new HttpError(400, 'A loja informada não é válida.');
+    const store = database.prepare('SELECT id FROM stores WHERE slug = ?').get(storeSlug);
+    if (!store) throw new HttpError(404, 'A loja não foi encontrada.');
+    if (database.prepare('SELECT 1 FROM customers WHERE store_id = ? AND email = ?').get(store.id, email)) {
+      throw new HttpError(409, 'Este e-mail já está cadastrado nesta loja.');
+    }
+    const salt = randomBytes(16).toString('hex');
+    const passwordHash = (await scrypt(password, salt, 64)).toString('hex');
+    let customerId;
+    try {
+      const result = database.prepare(
+        `INSERT INTO customers
+           (store_id, name, email, phone, password_salt, password_hash, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
+      ).run(store.id, name, email, phone, salt, passwordHash, new Date().toISOString());
+      customerId = Number(result.lastInsertRowid);
+    } catch (error) {
+      if (error.code === 'ERR_SQLITE_CONSTRAINT_UNIQUE') {
+        throw new HttpError(409, 'Este e-mail já está cadastrado nesta loja.');
+      }
+      throw error;
+    }
+    const customer = database.prepare('SELECT * FROM customers WHERE id = ?').get(customerId);
+    sendJSON(response, 201, {customer: publicCustomer(customer)}, {'Set-Cookie': createCustomerSession(customer.id)});
+    return;
+  }
+
+  if (route === '/api/customer/login' && request.method === 'POST') {
+    const body = await readJSON(request);
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
+    const storeSlug = typeof body.storeSlug === 'string' && body.storeSlug
+      ? body.storeSlug.trim().toLowerCase()
+      : 'loja-do-pedro';
+    const store = database.prepare('SELECT id FROM stores WHERE slug = ?').get(storeSlug);
+    const customer = store
+      ? database.prepare('SELECT * FROM customers WHERE store_id = ? AND email = ?').get(store.id, email)
+      : null;
+    const salt = customer ? customer.password_salt : '00000000000000000000000000000000';
+    const actualHash = await scrypt(password, salt, 64);
+    const expectedHash = customer ? Buffer.from(customer.password_hash, 'hex') : Buffer.alloc(64);
+    const validPassword = expectedHash.length === actualHash.length && timingSafeEqual(actualHash, expectedHash);
+    if (!customer || !validPassword) throw new HttpError(401, 'E-mail ou senha incorretos.');
+    sendJSON(response, 200, {customer: publicCustomer(customer)}, {'Set-Cookie': createCustomerSession(customer.id)});
+    return;
+  }
+
+  if (route === '/api/customer/me' && request.method === 'GET') {
+    const session = getCustomerSession(request);
+    const customer = session
+      ? database.prepare('SELECT * FROM customers WHERE id = ?').get(session.customerId)
+      : null;
+    sendJSON(response, 200, {customer: customer ? publicCustomer(customer) : null});
+    return;
+  }
+
+  if (route === '/api/customer/logout' && request.method === 'POST') {
+    const session = getCustomerSession(request);
+    if (session) customerSessions.delete(session.token);
+    sendJSON(response, 200, {success: true}, {'Set-Cookie': `${customerCookieName}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`});
     return;
   }
 
@@ -895,11 +1020,14 @@ const staticFiles = new Map([
   ['/', ['pages/index.html', 'text/html; charset=utf-8']],
   ['/login', ['pages/login.html', 'text/html; charset=utf-8']],
   ['/cadastro', ['pages/cadastro.html', 'text/html; charset=utf-8']],
+  ['/cliente/cadastro', ['pages/cliente-cadastro.html', 'text/html; charset=utf-8']],
+  ['/cliente/login', ['pages/cliente-login.html', 'text/html; charset=utf-8']],
   ['/admin', ['pages/admin.html', 'text/html; charset=utf-8']],
   ['/css/style.css', ['css/style.css', 'text/css; charset=utf-8']],
   ['/js/store.js', ['js/store.js', 'text/javascript; charset=utf-8']],
   ['/js/admin.js', ['js/admin.js', 'text/javascript; charset=utf-8']],
-  ['/js/auth.js', ['js/auth.js', 'text/javascript; charset=utf-8']]
+  ['/js/auth.js', ['js/auth.js', 'text/javascript; charset=utf-8']],
+  ['/js/customer-auth.js', ['js/customer-auth.js', 'text/javascript; charset=utf-8']]
 ]);
 
 function serveStatic(response, pathname) {
@@ -950,7 +1078,18 @@ const server = http.createServer(async (request, response) => {
   }
 });
 
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 3001);
+server.on('error', error => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`A porta ${port} já está em uso.`);
+    console.error(`Acesse http://localhost:${port} ou encerre o processo existente e execute npm.cmd start novamente.`);
+    process.exitCode = 1;
+    return;
+  }
+  console.error('Não foi possível iniciar o servidor:', error);
+  process.exitCode = 1;
+});
+
 server.listen(port, '127.0.0.1', () => {
   console.log(`CF Eletrônicos disponível em http://localhost:${port}`);
 });

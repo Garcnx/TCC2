@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cadastre-se para acessar a loja demonstrativa.">
+  <title>Criar conta | Loja</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/customer-auth.js" defer></script>
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <a class="brand auth-brand" href="/" aria-label="Voltar para a loja">
+        <span class="logo">CF</span>
+        <span><strong id="authTitle">Criar conta do cliente</strong><small>Acesso à loja</small></span>
+      </a>
+      <p class="auth-intro">Cadastre-se para acessar a loja, preencher seus dados no carrinho e acompanhar suas compras de demonstração.</p>
+      <form class="auth-form" id="customerRegisterForm">
+        <label for="customerRegisterName">Nome completo</label>
+        <input id="customerRegisterName" name="name" type="text" autocomplete="name" minlength="2" maxlength="80" required>
+        <label for="customerRegisterEmail">E-mail</label>
+        <input id="customerRegisterEmail" name="email" type="email" autocomplete="email" maxlength="254" required>
+        <label for="customerRegisterPhone">Telefone</label>
+        <input id="customerRegisterPhone" name="phone" type="tel" autocomplete="tel" minlength="10" maxlength="20" placeholder="(11) 99999-9999" required>
+        <label for="customerRegisterPassword">Senha (mínimo de 8 caracteres)</label>
+        <input id="customerRegisterPassword" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+        <button class="primary-button" type="submit">Criar minha conta</button>
+      </form>
+      <p class="message" id="customerAuthMessage" role="status" aria-live="polite"></p>
+      <p class="auth-note">Cadastro demonstrativo, sem cobrança ou dados reais de pagamento.</p>
+      <a class="back-link" href="/cliente/login">Já tem conta? → Entrar</a>
+      <a class="back-link" href="/">← Voltar à loja</a>
+    </section>
+  </main>
+</body>
+</html>
